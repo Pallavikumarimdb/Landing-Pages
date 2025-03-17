@@ -6,7 +6,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="bg-zinc-900">
+    <html lang="en" className="bg-[#DCD7C9]">
       <body>{children}</body>
     </html>
   );
