@@ -8,7 +8,7 @@ export default function Home() {
 
 
   return (
-    <div className='bg-[#E2F1E7]'>
+    <div>
       <HeroSection/>
   </div>
   );

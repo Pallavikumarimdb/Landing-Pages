@@ -3,63 +3,88 @@ import canvasImages from "./canvasimages";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 
-function Canvas({ details }) {
-  const { startIndex, numImages, duration, size, top, left, zIndex } = details;
+const Canvas = ({ details }) => {
+    const { startIndex, numImages, duration, size, top, left, zIndex } = details;
+    const [index, setIndex] = useState({ value: startIndex });
+    const canvasRef = useRef(null);
 
-  const [index, setIndex] = useState({ value: startIndex });
-  const canvasRef = useRef(null);
+    const clampValue = (value, min, max) => Math.min(Math.max(value, min), max);
 
-  useGSAP(() => {
-    gsap.to(index, {
-      value: startIndex + numImages - 1,
-      duration: duration,
-      repeat: -1,
-      ease: "linear",
-      onUpdate: () => {
-        setIndex({ value: Math.round(index.value) });
-      },
-    });
+    const getResponsiveDetails = (size, top, left) => {
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
 
-    gsap.from(canvasRef.current, {
-      opacity: 0,
-      duration: 1,
-      ease: "power2.inOut",
-    });
-  });
+        const desktopScalingFactor = 1.2; // Adjust this factor for larger sizes on desktop
 
-  useEffect(() => {
-    const scale = window.devicePixelRatio;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    const img = new Image();
-    img.src = canvasImages[index.value];
-    img.onload = () => {
-      canvas.width = canvas.offsetWidth * scale;
-      canvas.height = canvas.offsetHeight * scale;
-      canvas.style.width = canvas.offsetWidth + "px";
-      canvas.style.height = canvas.offsetHeight + "px";
+        if (viewportWidth > 1024) {
+            return {
+                size: size * desktopScalingFactor, // Scale up the size
+                top,
+                left,
+            };
+        }
 
-      ctx.scale(scale, scale);
-      ctx.drawImage(img, 0, 0, canvas.offsetWidth, canvas.offsetHeight);
+        // Adjust sizes and positions for smaller viewports
+        const maxSize = Math.min(viewportWidth, viewportHeight) * 0.4; // Limit size to 40% of the smaller dimension
+        const clampedSize = Math.min(size, maxSize);
+
+        const clampedTop = clampValue(top, 0, 100 - (clampedSize / viewportHeight) * 100); // Keep within height
+        const clampedLeft = clampValue(left, 0, 100 - (clampedSize / viewportWidth) * 100); // Keep within width
+
+        return { size: clampedSize, top: clampedTop, left: clampedLeft };
     };
-  }, [index]);
 
-  return (
-    <canvas
-      data-scroll
-      data-scroll-speed={Math.random().toFixed(1)}
-      ref={canvasRef}
-      className="absolute"
-      style={{
-        width: `${size * 1.8}px`,
-        height: `${size * 1.8}px`,
-        top: `${top}%`,
-        left: `${left}%`,
-        zIndex: `${zIndex}`,
-      }}
-      id="canvas"
-    ></canvas>
-  );
-}
+    const { size: responsiveSize, top: responsiveTop, left: responsiveLeft } = getResponsiveDetails(size, top, left);
+
+    useGSAP(() => {
+        gsap.to(index, {
+            value: startIndex + numImages - 1,
+            duration: duration,
+            ease: "linear",
+            repeat: -1,
+            onUpdate: () => {
+                setIndex({ value: Math.round(index.value) });
+            },
+        });
+
+        gsap.from(canvasRef.current, {
+            opacity: 0,
+            duration: 1,
+            ease: "power2.inOut",
+        });
+    });
+
+    useEffect(() => {
+        const scale = window.devicePixelRatio;
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d");
+        const img = new Image();
+        img.src = canvasImages[index.value];
+        img.onload = () => {
+            canvas.width = canvas.offsetWidth * scale;
+            canvas.height = canvas.offsetHeight * scale;
+            canvas.style.width = canvas.offsetWidth + "px";
+            canvas.style.height = canvas.offsetHeight + "px";
+            ctx.scale(scale, scale);
+            ctx.drawImage(img, 0, 0, canvas.offsetWidth, canvas.offsetHeight);
+        };
+    }, [index]);
+
+    return (
+        <canvas
+            data-scroll
+            data-scroll-speed={Math.random().toFixed(1)}
+            ref={canvasRef}
+            className="absolute"
+            style={{
+                width: `${responsiveSize}px`,
+                height: `${responsiveSize}px`,
+                top: `${responsiveTop}%`,
+                left: `${responsiveLeft}%`,
+                zIndex: `${zIndex}`,
+            }}
+        ></canvas>
+    );
+};
 
 export default Canvas;

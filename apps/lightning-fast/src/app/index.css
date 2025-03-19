@@ -3,7 +3,6 @@
 @tailwind utilities;
 
 body {
-  /* background-color: #fd2c2a; */
   transition: all cubic-bezier(0.23, 1, 0.32, 1) 1s;
   background-color: #000;
   color: #fff;
@@ -16,4 +15,39 @@ canvas {
 
 span.growing {
   background-color: #fd2c2a;
+}
+
+.circle-container {
+  position: relative;
+  width: 250px; /* Circle size */
+  height: 250px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.rotating-circle {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  animation: rotate360 15s linear infinite;
+}
+
+@keyframes rotate360 {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.char {
+  position: absolute;
+  font-family: Poppins;
+  left: 50%;
+  font-weight: bold;
+  font-size: 14px;
+  display: inline-block;
+  transform-origin: 0 125px;
 }
